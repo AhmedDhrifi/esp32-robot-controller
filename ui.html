@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESP32 Robot Control</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+h1 { margin-bottom: 20px; text-align: center; }
+.button-container {
+    display: grid;
+    grid-template-columns: repeat(2,150px);
+    grid-gap: 20px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+button {
+    padding: 20px; font-size: 18px;
+    border: none; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s ease;
+    background-color: #ff6b6b; color: white;
+    box-shadow:0 4px 6px rgba(0,0,0,0.3);
+}
+button:active { transform: scale(0.95); background-color: #ff4d4d; }
+.slider-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+input[type=range] { width: 300px; }
+#speedValue { margin-top: 10px; font-weight: bold; }
+@media(max-width:500px) { .button-container { grid-template-columns:1fr; } input[type=range]{width:100%;} }
+</style>
+</head>
+<body>
+
+<h1>ESP32 Robot Control</h1>
+
+<div class="slider-container">
+    <label for="speed">Speed:</label>
+    <input type="range" id="speed" min="10000" max="65535" value="40000" step="1000">
+    <div id="speedValue">Speed: 40000</div>
+</div>
+
+<div class="button-container">
+    <button id="forward">Forward</button>
+    <button id="backward">Backward</button>
+    <button id="left">Left</button>
+    <button id="right">Right</button>
+    <button id="stop">Stop</button>
+</div>
+
+<script>
+let speedSlider = document.getElementById("speed");
+let speedDisplay = document.getElementById("speedValue");
+let currentSpeed = speedSlider.value;
+speedSlider.oninput = function() {
+    currentSpeed = this.value;
+    speedDisplay.innerText = `Speed: ${currentSpeed}`;
+}
+
+// الحالة الحالية للأزرار
+let buttons = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false
+};
+
+// تحديث حالة الزر عند الضغط
+document.getElementById("forward").addEventListener("mousedown", ()=>{buttons.forward=true; sendCommand();});
+document.getElementById("forward").addEventListener("mouseup", ()=>{buttons.forward=false; sendCommand();});
+
+document.getElementById("backward").addEventListener("mousedown", ()=>{buttons.backward=true; sendCommand();});
+document.getElementById("backward").addEventListener("mouseup", ()=>{buttons.backward=false; sendCommand();});
+
+document.getElementById("left").addEventListener("mousedown", ()=>{buttons.left=true; sendCommand();});
+document.getElementById("left").addEventListener("mouseup", ()=>{buttons.left=false; sendCommand();});
+
+document.getElementById("right").addEventListener("mousedown", ()=>{buttons.right=true; sendCommand();});
+document.getElementById("right").addEventListener("mouseup", ()=>{buttons.right=false; sendCommand();});
+
+document.getElementById("stop").addEventListener("click", ()=>{
+    buttons.forward=false; buttons.backward=false; buttons.left=false; buttons.right=false;
+    sendCommand();
+});
+
+function sendCommand() {
+    let dir = "stop";
+
+    // تحديد الاتجاه حسب عدة أزرار
+    if(buttons.forward && buttons.left){ dir="forward-left"; }
+    else if(buttons.forward && buttons.right){ dir="forward-right"; }
+    else if(buttons.backward && buttons.left){ dir="backward-left"; }
+    else if(buttons.backward && buttons.right){ dir="backward-right"; }
+    else if(buttons.forward){ dir="forward"; }
+    else if(buttons.backward){ dir="backward"; }
+    else if(buttons.left){ dir="left"; }
+    else if(buttons.right){ dir="right"; }
+
+    fetch(`/move?dir=${dir}&speed=${currentSpeed}`)
+    .then(()=>console.log("Command:", dir, "Speed:", currentSpeed))
+    .catch(err=>console.error(err));
+}
+</script>
+
+</body>
+</html>
