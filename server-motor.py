@@ -8,8 +8,8 @@ Response.default_content_type = "text/html"
 # ======================
 # WiFi Setup
 # ======================
-SSID = "Ooredoo-1896D3"
-PASSWORD = "25005634"
+SSID = "********"
+PASSWORD = "*********"
 
 wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
@@ -130,3 +130,4 @@ def move(request):
 # Run the Server
 # ======================
 app.run(host="0.0.0.0", port=80)
+
